@@ -45,11 +45,6 @@ def multiRobotModel():
     constraint.v_max = 2
     constraint.v_min = -2
 
-    # nonlinear constraint
-    constraint.obser_min = 10
-    constraint.obser_max = 200
-
     detO = -2*(-vix*vjx*sin(psiij) + viy*vjx*cos(psiij) - vix*vjy*cos(psiij) - viy*vjy*sin(psiij))*(-vjx*yij*cos(psiij) + vjy*yij*sin(psiij) + vix*yij + vjx*xij*sin(psiij) + vjy*xij*cos(psiij) - viy*xij)
-    # constraint.expr = Function("detO", [x, u], [detO])
-    constraint.expr = vcat([detO])
+    constraint.expr = vcat([0.021/(0.001+detO)])
     return model, constraint

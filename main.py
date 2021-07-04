@@ -154,11 +154,8 @@ tp, N = 1.0, 50
 solver = MultiRobotOptimizer(model, constraint, tp, N)
 xTrue[2, 0] = 0
 xTrue[2, 1] = 1.7
-xs = np.array([1.0, 1.0, 1.7])
-xsBetween = np.concatenate((xs , np.zeros(4)))
-solver.set(N, 'yref', xs)
 for i in range(N):
-    solver.set(i, 'yref', xsBetween)
+    solver.set(i, 'yref', 0)
 # uOpti = np.zeros(nu)
 
 def nmpc(xCurrent):
