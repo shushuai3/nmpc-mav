@@ -40,11 +40,11 @@ def multiRobotModel():
     model.name = 'multiRobot'
 
     # state and input bounds
-    constraint.xy_min = -10
-    constraint.xy_max = 10
+    constraint.xy_min = -4
+    constraint.xy_max = 4
     constraint.v_max = 2
     constraint.v_min = -2
 
     detO = -2*(-vix*vjx*sin(psiij) + viy*vjx*cos(psiij) - vix*vjy*cos(psiij) - viy*vjy*sin(psiij))*(-vjx*yij*cos(psiij) + vjy*yij*sin(psiij) + vix*yij + vjx*xij*sin(psiij) + vjy*xij*cos(psiij) - viy*xij)
-    constraint.expr = vcat([0.021/(0.001+detO)])
+    constraint.cost_y_expr = vcat([0.021/(0.001+fabs(detO))])
     return model, constraint

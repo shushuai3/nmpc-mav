@@ -13,7 +13,7 @@ import matplotlib.animation as animation
 # Simulation settings
 show_animation = False
 # seed the random number generator for reproducibility
-np.random.seed(19910620)
+# np.random.seed(19910620)
 border = {"xmin":-30, "xmax":30, "ymin":-30, "ymax":30, "zmin":0, "zmax":4}
 numRob = 2
 dt = 0.01
@@ -44,6 +44,9 @@ def calcInput_FlyRandom(step):
         else:
             velocity[0:2,:] = np.random.uniform(0, maxVel*2, (2, numRob)) - maxVel
             velocity[2,:] = np.random.uniform(0, 1, (1, numRob)) - 0.5
+    if step == 1:
+        velocity[0:2,:] = np.random.uniform(0, maxVel*2, (2, numRob)) - maxVel
+        velocity[2,:] = np.random.uniform(0, 1, (1, numRob)) - 0.5
     velocity[2, 0:2] = np.zeros((1, 2))
     return velocity
 
@@ -159,7 +162,9 @@ for i in range(N):
 # uOpti = np.zeros(nu)
 
 def nmpc(xCurrent):
-    # given the initial states
+    # given the initial states (clip is important for the solver convergence)
+    xCurrent[0:2] = np.clip(xCurrent[0:2], -4, 4)
+    xCurrent[2] = np.clip(xCurrent[2], -15, 15)
     solver.set(0, 'lbx', xCurrent)
     solver.set(0, 'ubx', xCurrent)
     # solve the optimal inputs
@@ -218,6 +223,7 @@ else:
     dataForPlot = np.array([xEsti[0,1], xTrueRL[0,1], xEsti[1,1], xTrueRL[1,1], xEsti[2,1], xTrueRL[2,1]])
     step = 0
     while simTime >= dt*step:
+        print(relativeState[:, 0, 1])
         step += 1
         u = nmpc(relativeState[:, 0, 1])
         # u = calcInput_FlyRandom(step)
@@ -229,6 +235,7 @@ else:
         dataForPlot = np.vstack([dataForPlot, np.array([xEsti[0,1], xTrueRL[0,1], xEsti[1,1],
             xTrueRL[1,1], xEsti[2,1], xTrueRL[2,1]])])
     dataForPlotArray = dataForPlot.T
+    # np.savetxt("data/rand00.txt", dataForPlot, fmt="%s")
     timePlot = np.arange(0, len(dataForPlotArray[0]))/100
     f, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
     plt.margins(x=0)
@@ -250,85 +257,3 @@ else:
     f.subplots_adjust(hspace=0)
     plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
     plt.show()
-
-'''
-# figure X-Y-Yaw error of 50 random tests with optimal observability
-testNum = 50
-relaX01errO = [[] for i in range(testNum)]
-relaY01errO = [[] for i in range(testNum)]
-relaYaw01errO = [[] for i in range(testNum)]
-for epoch in range(testNum):
-    print("Test number: {}".format(epoch))
-    xTrue = np.random.uniform(-3, 3, (3, numRob))
-    xTrue[2, 0] = 0
-    xTrue[2, 1] = 1.7
-    relativeState = np.zeros((3, numRob, numRob))
-    velocity = np.zeros((3, numRob))
-    Pmatrix = np.zeros((3, 3, numRob, numRob))
-    for i in range(numRob):
-        for j in range(numRob):
-            Pmatrix[0:2, 0:2, i, j] = np.eye(2)*Pxy
-            Pmatrix[2, 2, i, j] = Pr
-    step = 0
-    while simTime >= dt*step:
-        step += 1
-        # u = nmpc(relativeState[:, 0, 1])
-        u = calcInput_FlyRandom(step)
-        xTrue, zNois, uNois = update(xTrue, u)
-        if step % ekfStride == 0:
-            relativeState = EKF(uNois, zNois, relativeState, ekfStride)
-        xEsti = relativeState[:,0,:]
-        xTrueRL = calcRelaState(xTrue, numRob)
-        relaX01errO[epoch].append(xEsti[0,1]-xTrueRL[0,1])
-        relaY01errO[epoch].append(xEsti[1,1]-xTrueRL[1,1])
-        relaYaw01errO[epoch].append(xEsti[2,1]-xTrueRL[2,1] - 3.14*round((xEsti[2,1]-xTrueRL[2,1])/3.14))
-timePlot = np.arange(0, len(relaX01errO[0]))/100
-x01array = np.array(relaX01errO)
-y01array = np.array(relaY01errO)
-yaw01array = np.array(relaYaw01errO)
-np.savetxt("data/xErr.txt", x01array.T, fmt="%s")
-np.savetxt("data/yErr.txt", y01array.T, fmt="%s")
-np.savetxt("data/yawErr.txt", yaw01array.T, fmt="%s")
-f, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
-plt.margins(x=0)
-for epoch in range(testNum):
-    ax1.plot(timePlot, x01array[epoch, :])
-    ax2.plot(timePlot, y01array[epoch, :])
-    ax3.plot(timePlot, yaw01array[epoch, :])
-ax1.axhline(y=0, color='r', linestyle='-')
-ax2.axhline(y=0, color='r', linestyle='-')
-ax3.axhline(y=0, color='r', linestyle='-')
-ax1.set_ylabel(r"Err $x_{ij}$ (m)", fontsize=12)
-ax2.set_ylabel(r"Err $y_{ij}$ (m)", fontsize=12)
-ax3.set_ylabel(r"Err $\mathrm{\psi}_{ij}$ (rad)", fontsize=12)
-ax3.set_xlabel("Time (s)", fontsize=12)
-f.subplots_adjust(hspace=0)
-plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
-plt.show()
-'''
-'''
-x01array = np.loadtxt("data/xErr.txt").T
-y01array = np.loadtxt("data/yErr.txt").T
-yaw01array = np.loadtxt("data/yawErr.txt").T
-x01array = np.delete(x01array, 33, 0)
-y01array = np.delete(y01array, 33, 0)
-yaw01array = np.delete(yaw01array, 33, 0)
-epochs = len(x01array[:, 0])
-timePlot = np.arange(0, len(x01array[0, :]))/100
-f, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
-plt.margins(x=0)
-for epoch in range(epochs):
-    ax1.plot(timePlot, x01array[epoch, :])
-    ax2.plot(timePlot, y01array[epoch, :])
-    ax3.plot(timePlot, yaw01array[epoch, :])
-ax1.axhline(y=0, color='r', linestyle='-')
-ax2.axhline(y=0, color='r', linestyle='-')
-ax3.axhline(y=0, color='r', linestyle='-')
-ax1.set_ylabel(r"Err $x_{ij}$ (m)", fontsize=12)
-ax2.set_ylabel(r"Err $y_{ij}$ (m)", fontsize=12)
-ax3.set_ylabel(r"Err $\mathrm{\psi}_{ij}$ (rad)", fontsize=12)
-ax3.set_xlabel("Time (s)", fontsize=12)
-f.subplots_adjust(hspace=0)
-plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
-plt.show()
-'''

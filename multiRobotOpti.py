@@ -16,7 +16,7 @@ def MultiRobotOptimizer(model, constraint, tp, steps):
     # nonlinear objective
     ocp.cost.cost_type = 'NONLINEAR_LS'
     ocp.cost.W = np.diag([1])
-    ocp.model.cost_y_expr = constraint.expr
+    ocp.model.cost_y_expr = constraint.cost_y_expr
 
     # constraints of input and state
     ocp.constraints.lbu = np.array([constraint.v_min, constraint.v_min, constraint.v_min, constraint.v_min])
@@ -31,8 +31,6 @@ def MultiRobotOptimizer(model, constraint, tp, steps):
     ocp.cost.yref = np.zeros(ny)
 
     # solver settings
-    ocp.solver_options.sim_method_num_stages = 4
-    ocp.solver_options.sim_method_num_steps = 3
     ocp.solver_options.nlp_solver_max_iter = 200
     ocp.solver_options.tol = 1e-4
     ocp.solver_options.tf = tp
