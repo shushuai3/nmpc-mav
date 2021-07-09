@@ -13,7 +13,7 @@ import matplotlib.animation as animation
 # Simulation settings
 show_animation = False
 # seed the random number generator for reproducibility
-# np.random.seed(19910620)
+np.random.seed(20210701)
 border = {"xmin":-30, "xmax":30, "ymin":-30, "ymax":30, "zmin":0, "zmax":4}
 numRob = 2
 dt = 0.01
@@ -159,7 +159,7 @@ xTrue[2, 0] = 0
 xTrue[2, 1] = 1.7
 for i in range(N):
     solver.set(i, 'yref', 0)
-# uOpti = np.zeros(nu)
+u_history = [[], [], [], []]
 
 def nmpc(xCurrent):
     # given the initial states (clip is important for the solver convergence)
@@ -172,6 +172,10 @@ def nmpc(xCurrent):
     if status != 0 :
         raise Exception('acados acados_ocp_solver returned status {}. Exiting.'.format(status))
     uOpti = solver.get(0, 'u')
+    u_history[0].append(uOpti[0])
+    u_history[1].append(uOpti[1])
+    u_history[2].append(uOpti[2])
+    u_history[3].append(uOpti[3])
     u = np.zeros((3, numRob))
     u[0:2,0] = uOpti[0:2]
     u[0:2,1] = uOpti[2:4]
@@ -243,16 +247,19 @@ else:
     ax1.plot(timePlot, dataForPlotArray[1,:])
     ax1.set_ylabel(r"$x_{ij}$ (m)", fontsize=12)
     ax1.grid(True)
+    ax1.margins(x=0)
     ax2.plot(timePlot, dataForPlotArray[2,:])
     ax2.plot(timePlot, dataForPlotArray[3,:])
     ax2.set_ylabel(r"$y_{ij}$ (m)", fontsize=12)
     ax2.grid(True)
+    ax2.margins(x=0)
     ax3.plot(timePlot, dataForPlotArray[4,:], label='Relative EKF')
     ax3.plot(timePlot, dataForPlotArray[5,:], label='Ground-truth')
     ax3.set_ylabel(r"$\mathrm{\psi_{ij}}$ (rad)", fontsize=12)
     ax3.set_xlabel("Time (s)", fontsize=12)
     ax3.grid(True)
-    ax3.legend(loc='upper center', bbox_to_anchor=(0.8, 2.2), shadow=True, ncol=1, fontsize=12)
+    ax3.margins(x=0)
+    ax3.legend(loc='upper center', bbox_to_anchor=(0.7, 0.7), shadow=True, ncol=1, fontsize=12)
     # Fine-tune figure; make subplots close to each other and hide x ticks for all but bottom plot.
     f.subplots_adjust(hspace=0)
     plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
