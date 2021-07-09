@@ -46,5 +46,6 @@ def multiRobotModel():
     constraint.v_min = -2
 
     detO = -2*(-vix*vjx*sin(psiij) + viy*vjx*cos(psiij) - vix*vjy*cos(psiij) - viy*vjy*sin(psiij))*(-vjx*yij*cos(psiij) + vjy*yij*sin(psiij) + vix*yij + vjx*xij*sin(psiij) + vjy*xij*cos(psiij) - viy*xij)
-    constraint.cost_y_expr = vcat([0.021/(0.001+fabs(detO))])
+    # constraint.cost_y_expr = vcat([0.021/(0.001+fabs(detO))])
+    constraint.cost_y_expr = vcat([0.021/(0.001+fabs(detO)), xij, yij])
     return model, constraint

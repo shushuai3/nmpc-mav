@@ -14,7 +14,7 @@ import matplotlib.animation as animation
 show_animation = False
 # seed the random number generator for reproducibility
 np.random.seed(20210701)
-border = {"xmin":-30, "xmax":30, "ymin":-30, "ymax":30, "zmin":0, "zmax":4}
+border = {"xmin":-10, "xmax":10, "ymin":-10, "ymax":10, "zmin":0, "zmax":4}
 numRob = 2
 dt = 0.01
 # simulation time [s]
@@ -158,11 +158,16 @@ solver = MultiRobotOptimizer(model, constraint, tp, N)
 xTrue[2, 0] = 0
 xTrue[2, 1] = 1.7
 for i in range(N):
-    solver.set(i, 'yref', 0)
+    # solver.set(i, 'yref', np.array([0]))
+    solver.set(i, 'yref', np.array([0, 1, 1]))
 u_history = [[], [], [], []]
+t_history = []
 
-def nmpc(xCurrent):
+def nmpc(xCurrent, step):
     # given the initial states (clip is important for the solver convergence)
+    if step > 1500:
+        for i in range(N):
+            solver.set(i, 'yref', np.array([0, 3*np.cos(step/100.0), 3*np.sin(step/100.0)]))
     xCurrent[0:2] = np.clip(xCurrent[0:2], -4, 4)
     xCurrent[2] = np.clip(xCurrent[2], -15, 15)
     solver.set(0, 'lbx', xCurrent)
@@ -183,7 +188,7 @@ def nmpc(xCurrent):
 
 def animate(step):
     global xTrue, relativeState
-    u = nmpc(relativeState[:, 0, 1])
+    u = nmpc(relativeState[:, 0, 1], step)
     # u = calcInput_FlyRandom(step)
     xTrue, zNois, uNois = update(xTrue, u)
     if step % ekfStride == 0:
@@ -229,7 +234,7 @@ else:
     while simTime >= dt*step:
         print(relativeState[:, 0, 1])
         step += 1
-        u = nmpc(relativeState[:, 0, 1])
+        u = nmpc(relativeState[:, 0, 1], step)
         # u = calcInput_FlyRandom(step)
         xTrue, zNois, uNois = update(xTrue, u)
         if step % ekfStride == 0:
@@ -264,3 +269,29 @@ else:
     f.subplots_adjust(hspace=0)
     plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
     plt.show()
+
+    # Plot of the optimal control inputs
+    # timePlot = np.arange(0, len(u_history[0]))/100
+    # f, (ax1, ax2, ax3, ax4) = plt.subplots(4, sharex=True)
+    # plt.margins(x=0)
+    # ax1.plot(timePlot, u_history[0])
+    # ax1.set_ylabel(r"$v_{i}^x$", fontsize=12)
+    # ax1.grid(True)
+    # ax1.margins(x=0)
+    # ax2.plot(timePlot, u_history[1])
+    # ax2.set_ylabel(r"$v_{i}^y$", fontsize=12)
+    # ax2.grid(True)
+    # ax2.margins(x=0)
+    # ax3.plot(timePlot, u_history[2])
+    # ax3.set_ylabel(r"$v_{j}^x$", fontsize=12)
+    # ax3.grid(True)
+    # ax3.margins(x=0)
+    # ax4.plot(timePlot, u_history[3])
+    # ax4.set_ylabel(r"$v_{j}^y$", fontsize=12)
+    # ax4.grid(True)
+    # ax4.margins(x=0)
+    # ax4.set_xlabel("Time (s)", fontsize=12)
+    # # Fine-tune figure; make subplots close to each other and hide x ticks for all but bottom plot.
+    # f.subplots_adjust(hspace=0)
+    # plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
+    # plt.show()

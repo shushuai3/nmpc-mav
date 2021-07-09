@@ -9,11 +9,11 @@ def MultiRobotOptimizer(model, constraint, tp, steps):
 
     # dimension
     nx = model.x.size()[0]
-    ny = 1
+    ny = constraint.cost_y_expr.size()[0]
 
     # nonlinear objective
     ocp.cost.cost_type = 'NONLINEAR_LS'
-    ocp.cost.W = np.diag([1])
+    ocp.cost.W = np.diag([1.0, 2.0, 2.0])
     ocp.model.cost_y_expr = constraint.cost_y_expr
 
     # constraints of input and state
