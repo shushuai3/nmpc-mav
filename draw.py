@@ -43,7 +43,7 @@ plt.show()
 #                 if err > 0.5:
 #                     time[j].append(i/100.0)
 #                     break
-# data_nmpc = np.array(time)
+# data_nmpc = time
 # time = [[], [], []]
 # for fileNum in range(30):
 #     data = np.loadtxt("data/rand{:02d}.txt".format(fileNum+1))
@@ -59,43 +59,41 @@ plt.show()
 #                 if err > 0.7:
 #                     time[j].append(i/100.0)
 #                     break
-# data_rand = np.array(time)
-# labels = ['err_x', 'err_y', 'err_psi']
-# fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(9, 4))
-# bplot1 = ax1.boxplot(data_nmpc, vert=True, patch_artist=True, labels=labels)
-# ax1.set_title('Nonlinear MPC')
-# bplot2 = ax2.boxplot(data_rand, notch=True, vert=True, patch_artist=True, labels=labels)
-# ax2.set_title('Stochastic Control')
-# ax1.yaxis.grid(True)
-# ax2.yaxis.grid(True)
-# ax1.set_ylabel('Time (s)')
-# colors = ['pink', 'lightblue', 'lightgreen']
-# for bplot in (bplot1, bplot2):
-#     for patch, color in zip(bplot['boxes'], colors):
-#         patch.set_facecolor(color)
+# data_rand = time
+# labels = ['x_nmpc', 'x_rand', 'y_nmpc', 'y_rand', r'$\psi$_nmpc', r'$\psi$_rand']
+# data_total = np.array([data_nmpc[0], data_rand[0], data_nmpc[1], data_rand[1],
+#     data_nmpc[2], data_rand[2]])
+# fig, ax = plt.subplots(nrows=1, ncols=1)
+# # bplot1 = ax1.boxplot(data_nmpc, vert=True, patch_artist=True, labels=labels)
+# bplot = ax.boxplot(data_total, vert=True, patch_artist=True, labels=labels)
+# colors = ['lightblue', 'lightgreen', 'lightblue', 'lightgreen', 'lightblue', 'lightgreen']
+# for patch, color in zip(bplot['boxes'], colors):
+#     patch.set_facecolor(color)
+# ax.set_ylabel('Convergence Time (s)')
 # plt.show()
 
 # Localization error after convergence
 # x_rand, y_rand = [], []
 # for fileNum in range(30):
 #     data = np.loadtxt("data/rand{:02d}.txt".format(fileNum+1))
-#     for i in range(3500, 4000, 1):
+#     for i in range(3000, 4000, 1):
 #         x_rand.append(data[i, 1] - data[i, 0])
 #         y_rand.append(data[i, 3] - data[i, 2])
 # x_nmpc, y_nmpc = [], []
 # for fileNum in range(30):
 #     data = np.loadtxt("data/nmpc{:02d}.txt".format(fileNum+1))
-#     for i in range(3500, 4000, 1):
+#     for i in range(3000, 4000, 1):
 #         x_nmpc.append(data[i, 1] - data[i, 0])
 #         y_nmpc.append(data[i, 3] - data[i, 2])
 # plt.style.use('seaborn-white')
-# kwargs = dict(histtype='step', stacked=True, fill=False, bins=100)
+# kwargs = dict(histtype='step', stacked=True, fill=False, bins=5)
+# print(len(x_rand), len(x_nmpc))
 # plt.hist(x_rand, **kwargs, label="err_x_rand")
 # plt.hist(y_rand, **kwargs, label="err_y_rand")
 # plt.hist(x_nmpc, **kwargs, label="err_x_nmpc")
 # plt.hist(y_nmpc, **kwargs, label="err_y_nmpc")
 # plt.xlabel("Error (m)", fontsize=12)
-# plt.ylabel("Density", fontsize=12)
+# plt.ylabel("Number", fontsize=12)
 # plt.margins(x=0)
 # plt.legend(fontsize=12)
 # plt.grid()
