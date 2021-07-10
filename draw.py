@@ -1,5 +1,4 @@
-# data plot
-# change controller and filesave settting in main.py to save txt dataset
+# Download the data folder from https://github.com/shushuai3/nmpc-mav/files/6795513/data.zip
 # change "data/rand" or "data/nmpc" to plot the localization error
 import numpy as np
 import matplotlib.pyplot as plt
